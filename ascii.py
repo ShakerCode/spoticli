@@ -3,7 +3,7 @@ import requests
 import os
 from io import BytesIO
 
-# ASCII_CHARS_BRIGHT = [*"$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1\{\}[]?-_+~<>i!lI;:,\"^`'. "]
+# ASCII_CHARS_BRIGHT = list(reversed([*"$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1\{\}[]?-_+~<>i!lI;:,\"^`'. "]))
 ASCII_CHARS_BRIGHT = [*" .:-=+*#%@"] # for bright pictures
 ASCII_CHARS_DARK = list(reversed(ASCII_CHARS_BRIGHT)) # for dark pictures
 
@@ -32,7 +32,7 @@ def convert(image):
     return ascii_str
 
 
-def ascii_convertor(imageUrl, scale_factor, width=os.get_terminal_size().columns):
+def ascii_convertor(imageUrl, scale_factor=0.5, width=os.get_terminal_size().columns):
     response = requests.get(imageUrl)
     image = Image.open(BytesIO(response.content))
     image = resize(image, int(width * scale_factor))

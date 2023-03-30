@@ -34,6 +34,9 @@ def get_args():
     playlist_parser.add_argument('--track', type=str, nargs='?', default=None, help="Add a specific track")
     playlist_parser.set_defaults(func=playlist_add)
 
+    art_parser = subparsers.add_parser('art', description="[ZOOM OUT FIRST FOR BETTER RESOLUTION] Display art for current track")
+    art_parser.set_defaults(func=art)
+
     pause_parser = subparsers.add_parser('pause', description="Pause playback")
     pause_parser.set_defaults(func=lambda x: sp.pause_playback())
 
@@ -177,6 +180,22 @@ def display_stats(args): # displays relevant info about artist
         print(f"Track length: {min}:{sec}")
         print(f"="*COLUMNS)
 
+def playback_controls(k, data):
+        if k == ord('q'):
+            return -1
+        if k == ord('p'):
+            sp.pause_playback()
+        if k == curses.KEY_SRIGHT:
+            sp.next_track()
+        if k == curses.KEY_SLEFT:
+            sp.previous_track()
+        if k == ord(' '):
+            toggle_playback(data)
+        if k == curses.KEY_UP:
+            sp.volume(min(100, data['device']['volume_percent'] + 10))
+        if k == curses.KEY_DOWN:
+            sp.volume(max(0, data['device']['volume_percent'] - 10))
+
 def playlist_print(stdscr, curIdx, menu, trackName, trackArtist, trackAlbum):
     stdscr.erase()
     height, width = stdscr.getmaxyx()
@@ -202,6 +221,7 @@ def playlist_print(stdscr, curIdx, menu, trackName, trackArtist, trackAlbum):
 
 def playlist_selector(stdscr, args):
     curses.use_default_colors()
+    curses.curs_set(0)
     data = sp.current_playback()
     me = sp.current_user()
     playlists = sp.current_user_playlists()
@@ -249,35 +269,61 @@ def playlist_add(args):
     try:
         curses.wrapper(playlist_selector, args)
     except:
+        pprint("Something went wrong (playlist)")
+
+def art_helper(stdscr, args):
+    try:
+        curses.curs_set(0)
+        scale_factor = 0.30
+        pad = curses.newpad(curses.LINES - 1, curses.COLS - 1)
+        data = sp.current_playback()
+        cur, prev = data["item"]["id"], ""
+        curses.noecho()
+        while True:
+            height, width = pad.getmaxyx()
+            data = sp.current_playback()
+
+            stdscr.nodelay(True)
+            k = stdscr.getch()
+            if playback_controls(k, data) == -1:
+                break
+
+            pad.erase()
+            cur = data["item"]["id"]
+            if(cur != prev): # update image
+                image = get_image(data["item"]["album"]["images"][0]["url"], scale_factor, width)
+                rowInc = 0
+                offset = int(scale_factor * width) // 2
+                for line in image.split("\n"):
+                    pad.addstr(0 + rowInc, width // 2 - offset, line)
+                    rowInc += 1
+                pad.refresh(0, 0, 0, 0, height - 1, width - 1)
+            prev = cur
+            sleep(1)
+    except:
+        pprint("Couldn't print art")
         return
 
+def art(args):
+    curses.wrapper(art_helper, args)
+    # art_helper(args)
 
 def player_helper(stdscr, args):
     try:
-        k = 0
-        curses.halfdelay(10)
+        # curses.halfdelay(10)
         curses.use_default_colors()
         curses.noecho()
+        curses.curs_set(0)
         while True:
             data = sp.current_playback()
             height, width = stdscr.getmaxyx()
 
+            stdscr.nodelay(True)
             k = stdscr.getch()
-            if k == ord('q'):
+            if playback_controls(k, data) == -1:
                 break
-            if k == ord('p'):
-                sp.pause_playback()
-            if k == curses.KEY_SRIGHT:
-                sp.next_track()
-            if k == curses.KEY_SLEFT:
-                sp.previous_track()
-            if k == ord(' '):
-                toggle_playback(data)
-            if k == curses.KEY_UP:
-                sp.volume(min(100, data['device']['volume_percent'] + 10))
-            if k == curses.KEY_DOWN:
-                sp.volume(max(0, data['device']['volume_percent'] - 10))
-            stdscr.erase()
+
+            stdscr.erase() # erase prev info
             name = data["item"]["name"]
             device = data["device"]["name"]
             artists = data["item"]["artists"]
@@ -299,7 +345,8 @@ def player_helper(stdscr, args):
             stdscr.addstr(f"{prog_str}{total_str : >{width - len(prog_str)}}\n")
             stdscr.addstr(f"On: {device}\n")
             stdscr.addstr(f"="*width)
-            stdscr.refresh()
+            stdscr.refresh() # update with current info
+            sleep(1)
     except:
         print("Could not retrieve live playback")
         # pprint(data)
