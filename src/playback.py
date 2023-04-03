@@ -1,5 +1,6 @@
 import spotipy
 import curses
+from playlist import playlist_add
 from spotipy.oauth2 import SpotifyClientCredentials
 from spotipy.oauth2 import SpotifyOAuth
 from time import sleep
@@ -29,11 +30,11 @@ def volume(args, sp):
     print(f"Volume: {data['device']['volume_percent']}")
 
 
-def playback_controls(k, data, sp):
+def playback_controls(args, k, data, sp):
         if k == ord('q'):
             return -1
-        if k == ord('p'):
-            sp.pause_playback()
+        if k == ord('a'):
+            playlist_add(args, sp)
         if k == curses.KEY_SRIGHT:
             sp.next_track()
         if k == curses.KEY_SLEFT:

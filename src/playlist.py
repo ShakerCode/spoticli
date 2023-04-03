@@ -1,5 +1,19 @@
 import curses
 
+def playlist_confirmation(stdscr, trackName, playlist):
+    stdscr.nodelay(False)
+    try:
+        stdscr.erase()
+        stdscr.addstr(f"Added {trackName} to {playlist} successfully" + "\n\n")
+        stdscr.addstr("Press any button to return...")
+        stdscr.refresh()
+        stdscr.getch()
+    except:
+        stdscr.erase()
+        stdscr.addstr("Could not add track to playlist")
+        stdscr.refresh()
+        stdscr.getch()
+
 def playlist_print(stdscr, curIdx, menu, trackName, trackArtist, trackAlbum):
     stdscr.erase()
     height, width = stdscr.getmaxyx()
@@ -56,17 +70,10 @@ def playlist_selector(stdscr, args, sp):
             curIdx += 1
         elif key == curses.KEY_ENTER or key in [10, 13]:
             stdscr.erase()
-            try:
-                playlist = keys[curIdx]
-                sp.playlist_add_items(menu[playlist], [trackID])
-                stdscr.addstr(f"Added {trackName} to {playlist} successfully" + "\n\n")
-                stdscr.addstr("Press any button to return...")
-                stdscr.refresh()
-                stdscr.getch()
-            except:
-                stdscr.addstr("Could not add track to playlist")
-                stdscr.refresh()
-                stdscr.getch()
+            playlist = keys[curIdx]
+            sp.playlist_add_items(menu[playlist], [trackID])
+            playlist_confirmation(stdscr, trackName, playlist)
+            
         playlist_print(stdscr, curIdx, menu, trackName, trackArtist, trackAlbum)
 
 def playlist_add(args, sp):
