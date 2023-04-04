@@ -37,20 +37,20 @@ def get_args():
     art_parser.set_defaults(func=art)
 
     pause_parser = subparsers.add_parser('pause', description="Pause playback")
-    pause_parser.set_defaults(func=lambda x: sp.pause_playback())
+    pause_parser.set_defaults(func=pause)
 
-    play_parser = subparsers.add_parser('play', description="Start/resume  playback")
-    play_parser.set_defaults(func=lambda x: sp.start_playback())
+    play_parser = subparsers.add_parser('play', description="Start/resume playback")
+    play_parser.set_defaults(func=play)
 
     volume_parser = subparsers.add_parser('vol', description="View/adjust volume")
     volume_parser.add_argument('amount', type=int, nargs='?', default=None, help="Specify volume amount")
     volume_parser.set_defaults(func=volume)
 
     skip_parser = subparsers.add_parser('skip', description="Skip to next track")
-    skip_parser.set_defaults(func=lambda x: sp.next_track())
+    skip_parser.set_defaults(func=lambda x, y: sp.next_track())
 
     prev_parser = subparsers.add_parser('prev', description="Go back to previous next track")
-    prev_parser.set_defaults(func=lambda x: sp.previous_track())
+    prev_parser.set_defaults(func=lambda x, y: sp.previous_track())
 
     shuffle_parser = subparsers.add_parser('shuffle', description="Toggle shuffle state")
     shuffle_parser.set_defaults(func=toggle_shuffle)

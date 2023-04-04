@@ -28,46 +28,44 @@ def progress_bar(progress, prog_ms, dur_ms):
     return "|"*completed + "-"*remaining, prog_str, total_str
 
 def art_helper(stdscr, args, sp):
-    # try:
-    curses.curs_set(0)
-    scale_factor = 0.30
-    pad = curses.newpad(curses.LINES - 1, curses.COLS - 1)
-    data = sp.current_playback()
-    cur, prev = data["item"]["id"], ""
-    curses.noecho()
-    while True:
-        height, width = pad.getmaxyx()
+    try:
+        curses.curs_set(0)
+        scale_factor = 0.30
+        pad = curses.newpad(curses.LINES - 1, curses.COLS - 1)
         data = sp.current_playback()
+        cur, prev = data["item"]["id"], ""
+        curses.noecho()
+        while True:
+            height, width = pad.getmaxyx()
+            data = sp.current_playback()
 
-        stdscr.nodelay(True)
-        k = stdscr.getch()
-        pb = playback_controls(args, k, data, sp)
-        if pb == -1:
-            break
+            stdscr.nodelay(True)
+            k = stdscr.getch()
+            pb = playback_controls(args, k, data, sp)
+            if pb == -1:
+                break
 
-        pad.erase()
-        cur = data["item"]["id"]
-        if(cur != prev): # update image
-            image = get_image(data["item"]["album"]["images"][0]["url"], scale_factor, width)
-            rowInc = 0
-            offset = int(scale_factor * width) // 2
-            for line in image.split("\n"):
-                pad.addstr(0 + rowInc, width // 2 - offset, line)
-                rowInc += 1
-            pad.refresh(0, 0, 0, 0, height - 1, width - 1)
-        prev = cur
-        sleep(1)
-    # except:
-    #     print("Couldn't print art")
-    #     return
+            pad.erase()
+            cur = data["item"]["id"]
+            if(cur != prev): # update image
+                image = get_image(data["item"]["album"]["images"][0]["url"], scale_factor, width)
+                rowInc = 0
+                offset = int(scale_factor * width) // 2
+                for line in image.split("\n"):
+                    pad.addstr(0 + rowInc, width // 2 - offset, line)
+                    rowInc += 1
+                pad.refresh(0, 0, 0, 0, height - 1, width - 1)
+            prev = cur
+            sleep(1)
+    except:
+        print("Couldn't print art")
+        return
 
-def art(args):
-    curses.wrapper(art_helper, args)
-    # art_helper(args)
+def art(args, sp):
+    curses.wrapper(art_helper, args, sp)
 
 def player_helper(stdscr, args, sp):
     try:
-    # curses.halfdelay(10)
         curses.use_default_colors()
         curses.noecho()
         curses.curs_set(0)
@@ -107,10 +105,8 @@ def player_helper(stdscr, args, sp):
             sleep(1)
     except:
         print("Could not retrieve live playback")
-        # pprint(data)
         os.system("stty sane && clear")
         exit()
 
 def player(args, sp):
     curses.wrapper(player_helper, args, sp)
-    # pprint(sp.current_playback())

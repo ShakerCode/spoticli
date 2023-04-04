@@ -5,6 +5,16 @@ from spotipy.oauth2 import SpotifyClientCredentials
 from spotipy.oauth2 import SpotifyOAuth
 from time import sleep
 
+def pause(args, sp):
+    data = sp.current_playback()
+    if data["is_playing"]:
+        sp.pause_playback()
+
+def play(args, sp):
+    data = sp.current_playback()
+    if not data["is_playing"]:
+        sp.start_playback()
+
 def toggle_playback(data, sp):
     sp.pause_playback() if data["is_playing"] else sp.start_playback()
 

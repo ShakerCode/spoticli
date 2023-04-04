@@ -14,32 +14,41 @@ def playlist_confirmation(stdscr, trackName, playlist):
         stdscr.refresh()
         stdscr.getch()
 
-def playlist_print(stdscr, curIdx, menu, trackName, trackArtist, trackAlbum):
-    stdscr.erase()
+def playlist_print(stdscr, pad, curIdx, menu, trackName, trackArtist, trackAlbum):
     height, width = stdscr.getmaxyx()
 
-    stdscr.addstr(0, 0, "Adding")
-    stdscr.addstr(1, 0, "\t" + f"Track: {trackName}")
-    stdscr.addstr(2, 0, "\t" + f"Artist: {trackArtist}")
-    stdscr.addstr(3, 0, "\t" + f"Album: {trackAlbum}")
-    stdscr.addstr(4, 0, "to...")
+    padIdx = curIdx + 7 # 7 because tracks start printing on line 7
+    pad.erase()
+    pad.addstr(0, 0, "Adding")
+    pad.addstr(1, 0, "\t" + f"Track: {trackName}")
+    pad.addstr(2, 0, "\t" + f"Artist: {trackArtist}")
+    pad.addstr(3, 0, "\t" + f"Album: {trackAlbum}")
+    pad.addstr(4, 0, "to...")
 
     for i, (key, val) in enumerate(menu.items()):
         x = width // 10
         y = i + 7
         if i == curIdx:
-            stdscr.attron(curses.color_pair(1))
-            stdscr.addstr(y, x, key)
-            stdscr.attroff(curses.color_pair(1))
+            pad.attron(curses.color_pair(1))
+            pad.addstr(y, x, key)
+            pad.attroff(curses.color_pair(1))
         else:
-            stdscr.addstr(y, x, key)
-    stdscr.addstr(len(menu) + 8, x, "Press Enter to select...")
-    stdscr.addstr(len(menu) + 9, x, "Press q to quit...")
-    stdscr.refresh()
+            pad.addstr(y, x, key)
+    pad.addstr(len(menu) + 8, x, "Press Enter to select...")
+    pad.addstr(len(menu) + 9, x, "Press q to quit...")
+    pad.refresh(padIdx // height * height, 0, 0, 0, curses.LINES - 1, curses.COLS - 1) # "//" rounds down, so will update to correct height when needed
+
 
 def playlist_selector(stdscr, args, sp):
+    stdscr.erase()
+    stdscr.refresh()
+
     curses.use_default_colors()
     curses.curs_set(0)
+
+    pad = curses.newpad(2000, curses.COLS - 1)
+    pad.scrollok(True)
+    pad.idlok(True)
     data = sp.current_playback()
     me = sp.current_user()
     playlists = sp.current_user_playlists()
@@ -59,7 +68,7 @@ def playlist_selector(stdscr, args, sp):
     curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
     curIdx = 0
     keys = list(menu)
-    playlist_print(stdscr, curIdx, menu, trackName, trackArtist, trackAlbum)
+    playlist_print(stdscr, pad, curIdx, menu, trackName, trackArtist, trackAlbum)
     while True:
         key = stdscr.getch()
         if key == ord('q'):
@@ -74,7 +83,7 @@ def playlist_selector(stdscr, args, sp):
             sp.playlist_add_items(menu[playlist], [trackID])
             playlist_confirmation(stdscr, trackName, playlist)
             
-        playlist_print(stdscr, curIdx, menu, trackName, trackArtist, trackAlbum)
+        playlist_print(stdscr, pad, curIdx, menu, trackName, trackArtist, trackAlbum)
 
 def playlist_add(args, sp):
     try:
