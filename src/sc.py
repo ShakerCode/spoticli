@@ -61,8 +61,11 @@ def get_args():
     return parser.parse_args()
 
 def run():
-    args = get_args()
-    args.func(args, sp)
+    try:
+        args = get_args()
+        args.func(args, sp)
+    except:
+        print("Please provide a valid argunment")
     
 if  __name__=='__main__':
     scope = "user-read-playback-state,user-modify-playback-state,playlist-modify-public,playlist-modify-private,playlist-read-private"
